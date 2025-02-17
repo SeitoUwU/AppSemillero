@@ -1,81 +1,116 @@
-import React, {useState} from 'react';
-import {View, Text, TextInput, TouchableOpacity, StyleSheet, Image} from 'react-native';
-import {Keyboard, TouchableWithoutFeedback} from 'react-native';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    Image,
+    Keyboard,
+    SafeAreaView,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
+    TouchableWithoutFeedback,
+    StatusBar
+} from 'react-native';
 
-export default function Login({navigation}) {
+export default function Login({ navigation }) {
     const [usuario, setUsuario] = useState('');
     const [contrasena, setContrasena] = useState('');
 
     const handleLogin = () => {
         navigation.replace('Account');
-    }
+    };
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <View style={styles.container}>
-                <Image source={require('../assets/login.png')} style={styles.imagen}/>
+        <SafeAreaView style={styles.safeArea}>
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-                <Text style={styles.titulo}>
-                    Iniciar sesión
-                </Text>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollView}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        <View style={styles.container}>
+                            <Image source={require('../assets/login.png')} style={styles.imagen} />
 
-                <TextInput style={styles.input} placeholder={'Escribe tu usuario'} onChangeText={setUsuario}>
+                            <Text style={styles.titulo}>Iniciar sesión</Text>
 
-                </TextInput>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Escribe tu usuario"
+                                onChangeText={setUsuario}
+                            />
 
-                <TextInput style={styles.input} placeholder={'Escribe tu contraseña'} onChangeText={setContrasena}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Escribe tu contraseña"
+                                secureTextEntry
+                                onChangeText={setContrasena}
+                            />
 
-                </TextInput>
+                            <TouchableOpacity style={styles.botonInicio} onPress={handleLogin}>
+                                <Text style={styles.textoBoton}>Iniciar sesión</Text>
+                            </TouchableOpacity>
 
-                <TouchableOpacity style={styles.botonInicio} onPress={handleLogin}>
-                    <Text style={{color: '#1C2B31', fontSize: 18}}>Iniciar sesión</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.botonRegistro} onPress={() => navigation.navigate('Register')}>
-                    <Text style={{color: '#ffffff', fontSize: 18}}>Registrarse</Text>
-                </TouchableOpacity>
-            </View>
-        </TouchableWithoutFeedback>
-    )
+                            <TouchableOpacity
+                                style={styles.botonRegistro}
+                                onPress={() => navigation.navigate('Register')}
+                            >
+                                <Text style={styles.textoBotonRegistro}>Registrarse</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
+    );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    safeArea: {
         flex: 1,
+        backgroundColor: '#ffffff',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    },
+    scrollView: {
+        flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
         paddingHorizontal: 20,
     },
+    container: {
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: 30,
+    },
     imagen: {
-        width: 200,
-        height: 200,
+        width: 250,
+        height: 250,
         alignSelf: 'center',
-        marginTop: 150
+        marginBottom: 50,
     },
     titulo: {
         fontSize: 24,
         fontWeight: 'bold',
-        alignSelf: 'center',
-        marginTop: 20,
-        marginBottom: 20
+        textAlign: 'center',
+        marginBottom: 20,
     },
     input: {
-        width: "85%",
+        width: '85%',
         height: 50,
         backgroundColor: '#e1e1e1',
         borderRadius: 15,
         paddingHorizontal: 15,
         fontSize: 16,
         color: '#333',
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        marginBottom: 15,
-        marginLeft: 15,
-        marginRight: 15
+        marginBottom: 10,
     },
     botonInicio: {
         backgroundColor: '#03BED7',
@@ -83,9 +118,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         width: '85%',
         alignItems: 'center',
-        marginTop: 10,
-        marginLeft: 30,
-        marginRight: 30
+        marginTop: 2,
     },
     botonRegistro: {
         backgroundColor: '#1C2B31',
@@ -94,7 +127,14 @@ const styles = StyleSheet.create({
         width: '85%',
         alignItems: 'center',
         marginTop: 10,
-        marginLeft: 30,
-        marginRight: 30
-    }
+        marginBottom: 10,
+    },
+    textoBoton: {
+        color: '#1C2B31',
+        fontSize: 18,
+    },
+    textoBotonRegistro: {
+        color: '#ffffff',
+        fontSize: 18,
+    },
 });

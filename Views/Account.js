@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 
 export default function Account() {
     const navigation = useNavigation();
     const [imageUri, setImageUri] = useState(null);
     const [showLogout, setShowLogout] = useState(false);
+    const [selectedMaterial, setSelectedMaterial] = useState("");
 
     const openCamera = async () => {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -68,11 +70,28 @@ export default function Account() {
                         )}
                     </View>
 
+                    <View style={styles.pickerContainer}>
+                        <Text style={styles.pickerLabel}>Seleccione el tipo de material</Text>
+                        <Picker
+                            selectedValue={selectedMaterial}
+                            onValueChange={(itemValue) => setSelectedMaterial(itemValue)}
+                            style={styles.picker}
+                        >
+                            <Picker.Item label="Seleccione una opción..." value="" />
+                            <Picker.Item label="Plástico" value="plastico" />
+                            <Picker.Item label="Papel" value="papel" />
+                            <Picker.Item label="Cartón" value="carton" />
+                            <Picker.Item label="Vidrio" value="vidrio" />
+                            <Picker.Item label="Metal" value="metal" />
+                        </Picker>
+                    </View>
+
                     {imageUri && (
                         <TouchableOpacity style={styles.sendButton}>
                             <Text style={styles.sendButtonText}>Enviar</Text>
                         </TouchableOpacity>
                     )}
+
                 </View>
             </View>
         </TouchableWithoutFeedback>
@@ -129,7 +148,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 
-    /* ESTILOS DE LA CÁMARA */
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -186,4 +204,21 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    pickerContainer: {
+        marginTop: 20,
+        width: '100%',
+        alignItems: 'center',
+    },
+    pickerLabel: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 5,
+    },
+    picker: {
+        height: 50,
+        width: '80%',
+        backgroundColor: '#f2f2f2',
+        borderRadius: 10,
+    }
 });
