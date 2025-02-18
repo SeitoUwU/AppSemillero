@@ -1,17 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import React, {useState} from 'react';
+import {
+    View,
+    Text,
+    Image,
+    TouchableOpacity,
+    StyleSheet,
+    Keyboard,
+    TouchableWithoutFeedback,
+    Modal,
+    Platform
+} from 'react-native';
+
 import * as ImagePicker from 'expo-image-picker';
-import { useNavigation } from '@react-navigation/native';
-import { Picker } from '@react-native-picker/picker';
+import {useNavigation} from '@react-navigation/native';
+import {Picker} from '@react-native-picker/picker';
 
 export default function Account() {
     const navigation = useNavigation();
     const [imageUri, setImageUri] = useState(null);
     const [showLogout, setShowLogout] = useState(false);
     const [selectedMaterial, setSelectedMaterial] = useState("");
+    const [modalVisible, setModalVisible] = useState(false);
 
     const openCamera = async () => {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        const {status} = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
             alert("Se necesitan permisos para acceder a la cámara.");
             return;
@@ -42,7 +54,7 @@ export default function Account() {
                     </Text>
 
                     <TouchableOpacity onPress={() => setShowLogout(!showLogout)}>
-                        <Image source={require('../assets/profile.png')} style={styles.profileImage} />
+                        <Image source={require('../assets/profile.png')} style={styles.profileImage}/>
                     </TouchableOpacity>
 
                     {showLogout && (
@@ -56,10 +68,10 @@ export default function Account() {
                 <View style={styles.centerContainer}>
                     <View style={styles.cameraContainer}>
                         {imageUri ? (
-                            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                            <Image source={{uri: imageUri}} style={styles.imagePreview}/>
                         ) : (
                             <TouchableOpacity style={styles.cameraButton} onPress={openCamera}>
-                                <Image source={require('../assets/camara.png')} style={styles.cameraIcon} />
+                                <Image source={require('../assets/camara.png')} style={styles.cameraIcon}/>
                             </TouchableOpacity>
                         )}
 
@@ -70,21 +82,65 @@ export default function Account() {
                         )}
                     </View>
 
-                    <View style={styles.pickerContainer}>
-                        <Text style={styles.pickerLabel}>Seleccione el tipo de material</Text>
+                    {Platform.OS === 'android' ? (
                         <Picker
                             selectedValue={selectedMaterial}
                             onValueChange={(itemValue) => setSelectedMaterial(itemValue)}
                             style={styles.picker}
+                            dropdownIconColor="#333" // Asegura que el icono sea visible en Android
                         >
-                            <Picker.Item label="Seleccione una opción..." value="" />
-                            <Picker.Item label="Plástico" value="plastico" />
-                            <Picker.Item label="Papel" value="papel" />
-                            <Picker.Item label="Cartón" value="carton" />
-                            <Picker.Item label="Vidrio" value="vidrio" />
-                            <Picker.Item label="Metal" value="metal" />
+                            <Picker.Item label="Seleccione una opción..." value="" color="#000" />
+                            <Picker.Item label="Plástico" value="plastico" color="#000" />
+                            <Picker.Item label="Papel" value="papel" color="#000" />
+                            <Picker.Item label="Cartón" value="carton" color="#000" />
+                            <Picker.Item label="Vidrio" value="vidrio" color="#000" />
+                            <Picker.Item label="Metal" value="metal" color="#000" />
                         </Picker>
-                    </View>
+                    ) : (
+                        <>
+                            <TouchableOpacity
+                                style={styles.pickerButton}
+                                onPress={() => setModalVisible(true)}
+                            >
+                                <Text style={styles.pickerButtonText}>
+                                    {selectedMaterial
+                                        ? selectedMaterial.charAt(0).toUpperCase() + selectedMaterial.slice(1)
+                                        : 'Seleccione una opción...'}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <Modal visible={modalVisible} transparent={true} animationType="slide">
+                                <View style={styles.modalContainer}>
+                                    <View style={styles.modalContent}>
+                                        <Picker
+                                            selectedValue={selectedMaterial}
+                                            onValueChange={(itemValue) => {
+                                                setSelectedMaterial(itemValue);
+                                                setModalVisible(false);
+                                            }}
+                                            style={{ backgroundColor: "#ffffff" }} // Asegura que el fondo sea blanco
+                                        >
+                                            <Picker.Item label="Seleccione una opción..." value="" color="#000" style={{ color: "#000" }} />
+                                            <Picker.Item label="Plástico" value="plastico" color="#000" style={{ color: "#000" }} />
+                                            <Picker.Item label="Papel" value="papel" color="#000" style={{ color: "#000" }} />
+                                            <Picker.Item label="Cartón" value="carton" color="#000" style={{ color: "#000" }} />
+                                            <Picker.Item label="Vidrio" value="vidrio" color="#000" style={{ color: "#000" }} />
+                                            <Picker.Item label="Metal" value="metal" color="#000" style={{ color: "#000" }} />
+                                        </Picker>
+
+                                        <TouchableOpacity
+                                            style={styles.closeModalButton}
+                                            onPress={() => setModalVisible(false)}
+                                        >
+                                            <Text style={styles.closeModalText}>Cerrar</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </Modal>
+                        </>
+                    )}
+
+
 
                     {imageUri && (
                         <TouchableOpacity style={styles.sendButton}>
@@ -136,7 +192,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         elevation: 5,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 4,
         borderWidth: 1,
@@ -158,14 +214,15 @@ const styles = StyleSheet.create({
         height: 300,
         borderRadius: 20,
         overflow: 'hidden',
-        backgroundColor: '#e1e1e1',
+        backgroundColor: '#eeeeee',
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowColor: '#1c2b31',
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 4,
+        marginBottom: 20,
     },
     imagePreview: {
         width: '100%',
@@ -208,6 +265,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         width: '100%',
         alignItems: 'center',
+
     },
     pickerLabel: {
         fontSize: 16,
@@ -220,5 +278,41 @@ const styles = StyleSheet.create({
         width: '80%',
         backgroundColor: '#f2f2f2',
         borderRadius: 10,
-    }
+    },
+    pickerButton: {
+        height: 50,
+        backgroundColor: '#f2f2f2',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+        width: '80%',
+    },
+    pickerButtonText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#ffffff',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+    },
+    closeModalButton: {
+        marginTop: 10,
+        backgroundColor: '#03BED7',
+        padding: 10,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    closeModalText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 });
