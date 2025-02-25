@@ -66,9 +66,8 @@ export default function Register({ navigation }) {
                                 onChangeText={setConfirmarContrasena}
                             />
 
-                            {/* 🔹 Los botones dentro del ScrollView pero con suficiente espacio */}
                             <View style={styles.botonesContainer}>
-                                <TouchableOpacity style={styles.botonRegistro}>
+                                <TouchableOpacity style={styles.botonRegistro} onPress={() => navigation.navigate('Auditoria')}>
                                     <Text style={styles.textoBotonRegistro}>Registrarse</Text>
                                 </TouchableOpacity>
 

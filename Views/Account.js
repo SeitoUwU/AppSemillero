@@ -47,7 +47,6 @@ export default function Account() {
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={styles.container}>
-                {/* Header */}
                 <View style={styles.header}>
                     <Text style={styles.titulo}>
                         Hola, <Text style={styles.usuario}>Usuario</Text>
@@ -87,14 +86,14 @@ export default function Account() {
                             selectedValue={selectedMaterial}
                             onValueChange={(itemValue) => setSelectedMaterial(itemValue)}
                             style={styles.picker}
-                            dropdownIconColor="#333" // Asegura que el icono sea visible en Android
+                            dropdownIconColor="#333"
                         >
-                            <Picker.Item label="Seleccione una opción..." value="" color="#000" />
-                            <Picker.Item label="Plástico" value="plastico" color="#000" />
-                            <Picker.Item label="Papel" value="papel" color="#000" />
-                            <Picker.Item label="Cartón" value="carton" color="#000" />
-                            <Picker.Item label="Vidrio" value="vidrio" color="#000" />
-                            <Picker.Item label="Metal" value="metal" color="#000" />
+                            <Picker.Item label="Seleccione una opción..." value="" color="#000"/>
+                            <Picker.Item label="Plástico" value="plastico" color="#000"/>
+                            <Picker.Item label="Papel" value="papel" color="#000"/>
+                            <Picker.Item label="Cartón" value="carton" color="#000"/>
+                            <Picker.Item label="Vidrio" value="vidrio" color="#000"/>
+                            <Picker.Item label="Metal" value="metal" color="#000"/>
                         </Picker>
                     ) : (
                         <>
@@ -118,14 +117,20 @@ export default function Account() {
                                                 setSelectedMaterial(itemValue);
                                                 setModalVisible(false);
                                             }}
-                                            style={{ backgroundColor: "#ffffff" }} // Asegura que el fondo sea blanco
+                                            style={{backgroundColor: "#ffffff"}}
                                         >
-                                            <Picker.Item label="Seleccione una opción..." value="" color="#000" style={{ color: "#000" }} />
-                                            <Picker.Item label="Plástico" value="plastico" color="#000" style={{ color: "#000" }} />
-                                            <Picker.Item label="Papel" value="papel" color="#000" style={{ color: "#000" }} />
-                                            <Picker.Item label="Cartón" value="carton" color="#000" style={{ color: "#000" }} />
-                                            <Picker.Item label="Vidrio" value="vidrio" color="#000" style={{ color: "#000" }} />
-                                            <Picker.Item label="Metal" value="metal" color="#000" style={{ color: "#000" }} />
+                                            <Picker.Item label="Seleccione una opción..." value="" color="#000"
+                                                         style={{color: "#000"}}/>
+                                            <Picker.Item label="Plástico" value="plastico" color="#000"
+                                                         style={{color: "#000"}}/>
+                                            <Picker.Item label="Papel" value="papel" color="#000"
+                                                         style={{color: "#000"}}/>
+                                            <Picker.Item label="Cartón" value="carton" color="#000"
+                                                         style={{color: "#000"}}/>
+                                            <Picker.Item label="Vidrio" value="vidrio" color="#000"
+                                                         style={{color: "#000"}}/>
+                                            <Picker.Item label="Metal" value="metal" color="#000"
+                                                         style={{color: "#000"}}/>
                                         </Picker>
 
                                         <TouchableOpacity
@@ -139,7 +144,6 @@ export default function Account() {
                             </Modal>
                         </>
                     )}
-
 
 
                     {imageUri && (

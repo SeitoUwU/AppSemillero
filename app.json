@@ -23,6 +23,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "329225e3-eefe-4712-ba40-c2a638da077a"
+      }
+    },
+    "owner": "chviuche",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/329225e3-eefe-4712-ba40-c2a638da077a"
     }
   }
 }
