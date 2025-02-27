@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import {
     View,
     Text,
@@ -12,13 +13,52 @@ import {
     KeyboardAvoidingView,
     Platform,
     TouchableWithoutFeedback,
-    StatusBar
+    StatusBar,
+    Alert
 } from 'react-native';
 
 export default function Register({ navigation }) {
-    const [usuario, setUsuario] = useState('');
-    const [contrasena, setContrasena] = useState('');
-    const [confirmarContrasena, setConfirmarContrasena] = useState('');
+    const [user, setUser] = useState({
+        usuario: null,
+        contrasena: null,
+        confirmarContrasena: null,
+    });
+
+    const handledEvent = (field, value) => {
+        setUser({
+            ...user,
+            [field]: value,
+              
+        })
+        console.log(user);
+    }
+
+    const handledConfirmPassword = () => {
+        if (user.contrasena !== user.confirmarContrasena) {
+            Alert.alert('Las contraseñas no coinciden');
+            console.log(user);
+        } else {
+            register();
+        }
+    }
+
+    const register = async () => {
+        try {
+            const response = await axios.post('http://localhost:3000/register', {
+                username: user.usuario,
+                password: user.contrasena,
+            });
+            if (response.status === 201) {
+                Alert.alert(response.data.message);
+                navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            } else {
+                Alert.alert('Error', response.data.message);
+            }
+        } catch (error) {
+            console.log(error);
+            
+        }
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -51,23 +91,26 @@ export default function Register({ navigation }) {
                             <TextInput
                                 style={styles.input}
                                 placeholder="Usuario"
-                                onChangeText={setUsuario}
+                                onChangeText={(value) => handledEvent('usuario', value)}
+                                value={user.usuario}
                             />
                             <TextInput
                                 style={styles.input}
                                 placeholder="Contraseña"
                                 secureTextEntry
-                                onChangeText={setContrasena}
+                                onChangeText={(value) => handledEvent('contrasena', value)}
+                                value={user.contrasena}
                             />
                             <TextInput
                                 style={styles.input}
                                 placeholder="Confirmar contraseña"
                                 secureTextEntry
-                                onChangeText={setConfirmarContrasena}
+                                onChangeText={(value) => handledEvent('confirmarContrasena', value)}
+                                value={user.confirmarContrasena}
                             />
 
                             <View style={styles.botonesContainer}>
-                                <TouchableOpacity style={styles.botonRegistro} onPress={() => navigation.navigate('Auditoria')}>
+                                <TouchableOpacity style={styles.botonRegistro} onPress={handledConfirmPassword}>
                                     <Text style={styles.textoBotonRegistro}>Registrarse</Text>
                                 </TouchableOpacity>
 

@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import NetInfo from '@react-native-community/netinfo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     View,
     Text,
@@ -12,15 +15,54 @@ import {
     KeyboardAvoidingView,
     Platform,
     TouchableWithoutFeedback,
-    StatusBar
+    StatusBar,
+    Alert
 } from 'react-native';
 
 export default function Login({ navigation }) {
-    const [usuario, setUsuario] = useState('');
-    const [contrasena, setContrasena] = useState('');
+    const [user, setUser] = useState({
+        usuario: '',
+        contrasena: '',
+    });
 
-    const handleLogin = () => {
-        navigation.replace('Account');
+    const handledEvent = (field, value) => {
+        setUser({
+            ...user,
+            [field]: value,
+        })
+    };
+
+    // const checkConnection = async () => {
+    //     const netInfo = await NetInfo.fetch();
+    //     if (netInfo.isConnected) {
+    //         login();
+    //     } else {
+    //         Alert.alert('Error', 'No tienes conexión a internet');
+    //     }
+    // };
+
+    const login = async () => {
+        try {
+            const response = await axios.post('http://localhost:3000/login', {
+                username: user.usuario,
+                password: user.contrasena,
+            });
+            if (response.status === 200) {
+                if (response.data.rol === 'ADMIN') {
+                    navigation.reset({ index: 0, routes: [{ name: 'Auditoria' }] });
+                } else {
+                    await AsyncStorage.setItem('userToken', response.data.token);
+                    navigation.reset({ index: 0, routes: [{ name: 'Account' }] });
+                }
+            } else if (response.status === 401) {
+                Alert.alert('Error', response.data.message);
+            } else {
+                Alert.alert('Error', response.data.message);
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Ocurrió un error al iniciar sesión \n' + error.message);
+        }
+
     };
 
     return (
@@ -44,17 +86,19 @@ export default function Login({ navigation }) {
                             <TextInput
                                 style={styles.input}
                                 placeholder="Escribe tu usuario"
-                                onChangeText={setUsuario}
+                                onChangeText={(value) => handledEvent('usuario', value)}
+                                value={user.usuario}
                             />
 
                             <TextInput
                                 style={styles.input}
                                 placeholder="Escribe tu contraseña"
                                 secureTextEntry
-                                onChangeText={setContrasena}
+                                onChangeText={(value) => handledEvent('contrasena', value)}
+                                value={user.contrasena}
                             />
 
-                            <TouchableOpacity style={styles.botonInicio} onPress={handleLogin}>
+                            <TouchableOpacity style={styles.botonInicio} onPress={login}>
                                 <Text style={styles.textoBoton}>Iniciar sesión</Text>
                             </TouchableOpacity>
 
