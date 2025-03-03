@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import {
     View,
     Text,
@@ -8,12 +9,17 @@ import {
     Keyboard,
     TouchableWithoutFeedback,
     Modal,
-    Platform
+    Platform,
+    Alert
 } from 'react-native';
 
 import * as ImagePicker from 'expo-image-picker';
-import {useNavigation} from '@react-navigation/native';
-import {Picker} from '@react-native-picker/picker';
+import { useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { jwtDecode } from 'jwt-decode';
+import * as FileSystem from 'expo-file-system';
+
 
 export default function Account() {
     const navigation = useNavigation();
@@ -21,21 +27,105 @@ export default function Account() {
     const [showLogout, setShowLogout] = useState(false);
     const [selectedMaterial, setSelectedMaterial] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
+    const [options, setOptions] = useState([]);
+    const [materialId, setMaterialId] = useState(null);
+    const [material, setMaterial] = useState(null);
+
+    useEffect(() => {
+        getOptions();
+    }, []);
+
+    const getOptions = async () => {
+        try {
+            const response = await axios.get('http://localhost:3000/obtenerTiposB');
+            if (response.status === 200) {
+                setOptions(response.data);
+                console.log(response.data);
+            } else {
+                Alert.alert('Error', response.data.message);
+            }
+        }
+        catch (error) {
+            Alert.alert('Error', 'No se pudo conectar con el servidor');
+        }
+    }
+
+    const getToken = async () => {
+        console.log('getToken');
+        try {
+            const token = await AsyncStorage.getItem('userToken');
+            const decode = await jwtDecode(token);
+            return decode.username;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const sendImage = async () => {
+        const userName = await getToken();
+        if (verification()) {
+            setImageUri(convertImage(imageUri));
+            console.log("Datos que se van a enviar\n", imageUri, materialId, userName);
+            const response = await axios.post('http://localhost:3000/subirImagen', {
+                tipImagen: materialId + "",
+                usuarioName: userName,
+                imagen: imageUri,
+            })
+            if (response.status === 200) {
+                Alert.alert('Éxito', response.data.message);
+            } else {
+                Alert.alert('Error', response.data.message);
+            }
+        }
+    };
+
+    const verification = () => {
+        if (!materialId) {
+            console.log("id", materialId);
+            Alert.alert('Error', 'Seleccione un tipo de material');
+            return false;
+        } else if (!imageUri) {
+            console.log(imageUri);
+            Alert.alert('Error', 'Falta la imagen');
+            return false;
+        }
+        return true;
+    }
+
+    const convertImage = async (uri) => {
+        try {
+            const image = await FileSystem.readAsStringAsync(uri, {
+                encoding: FileSystem.EncodingType.Base64
+            });
+            return image;
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
 
     const openCamera = async () => {
-        const {status} = await ImagePicker.requestCameraPermissionsAsync();
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
             alert("Se necesitan permisos para acceder a la cámara.");
             return;
         }
-
+    
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
-            quality: 1,
+            quality: 0.8,
+            aspect: [5, 7], // Proporción aproximada para 500x700
         });
-
+    
         if (!result.canceled) {
-            setImageUri(result.assets[0].uri);
+            // Redimensiona la imagen a 500x700 píxeles exactamente
+            const manipResult = await ImageManipulator.manipulateAsync(
+                result.assets[0].uri,
+                [{ resize: { width: 500, height: 700 } }],
+                { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+            );
+            
+            setImageUri(manipResult.uri);
         }
     };
 
@@ -53,7 +143,7 @@ export default function Account() {
                     </Text>
 
                     <TouchableOpacity onPress={() => setShowLogout(!showLogout)}>
-                        <Image source={require('../assets/profile.png')} style={styles.profileImage}/>
+                        <Image source={require('../assets/profile.png')} style={styles.profileImage} />
                     </TouchableOpacity>
 
                     {showLogout && (
@@ -67,10 +157,10 @@ export default function Account() {
                 <View style={styles.centerContainer}>
                     <View style={styles.cameraContainer}>
                         {imageUri ? (
-                            <Image source={{uri: imageUri}} style={styles.imagePreview}/>
+                            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
                         ) : (
                             <TouchableOpacity style={styles.cameraButton} onPress={openCamera}>
-                                <Image source={require('../assets/camara.png')} style={styles.cameraIcon}/>
+                                <Image source={require('../assets/camara.png')} style={styles.cameraIcon} />
                             </TouchableOpacity>
                         )}
 
@@ -84,16 +174,45 @@ export default function Account() {
                     {Platform.OS === 'android' ? (
                         <Picker
                             selectedValue={selectedMaterial}
-                            onValueChange={(itemValue) => setSelectedMaterial(itemValue)}
+                            onValueChange={(itemValue, itemIndex) => {
+                                setSelectedMaterial(itemValue);
+                                if (itemValue !== "") {
+                                    // Convertir ambos valores a string para asegurar una comparación correcta
+                                    const selectedOption = options.find((option) =>
+                                        String(option.TIPIMG_ID) === String(itemValue));
+
+                                    // Debug para ver qué está pasando
+                                    console.log("Selected value:", itemValue, "Type:", typeof itemValue);
+                                    console.log("Selected option:", selectedOption);
+
+                                    if (selectedOption) {
+                                        setMaterialId(selectedOption.TIPIMG_ID);
+                                        setMaterial(selectedOption.TIPIMG_TIPO);
+                                    } else {
+                                        // Enfoque alternativo si el find no funciona
+                                        // Para el primer elemento después de "Seleccione una opción"
+                                        if (itemIndex > 0 && options.length >= itemIndex) {
+                                            setMaterialId(options[itemIndex - 1].TIPIMG_ID);
+                                            setMaterial(options[itemIndex - 1].TIPIMG_TIPO);
+                                        }
+                                    }
+                                } else {
+                                    setMaterialId("");
+                                    setMaterial("");
+                                }
+                            }}
                             style={styles.picker}
                             dropdownIconColor="#333"
                         >
-                            <Picker.Item label="Seleccione una opción..." value="" color="#000"/>
-                            <Picker.Item label="Plástico" value="plastico" color="#000"/>
-                            <Picker.Item label="Papel" value="papel" color="#000"/>
-                            <Picker.Item label="Cartón" value="carton" color="#000"/>
-                            <Picker.Item label="Vidrio" value="vidrio" color="#000"/>
-                            <Picker.Item label="Metal" value="metal" color="#000"/>
+                            <Picker.Item label="Seleccione una opción..." value="" color="#000" />
+                            {options.map((option) => (
+                                <Picker.Item
+                                    key={option.TIPIMG_ID}
+                                    label={option.TIPIMG_TIPO}
+                                    value={String(option.TIPIMG_ID)} // Convertir a string para consistencia
+                                    color="#000"
+                                />
+                            ))}
                         </Picker>
                     ) : (
                         <>
@@ -102,9 +221,7 @@ export default function Account() {
                                 onPress={() => setModalVisible(true)}
                             >
                                 <Text style={styles.pickerButtonText}>
-                                    {selectedMaterial
-                                        ? selectedMaterial.charAt(0).toUpperCase() + selectedMaterial.slice(1)
-                                        : 'Seleccione una opción...'}
+                                    {material || "Seleccione una opción..."}
                                 </Text>
                             </TouchableOpacity>
 
@@ -115,22 +232,33 @@ export default function Account() {
                                             selectedValue={selectedMaterial}
                                             onValueChange={(itemValue) => {
                                                 setSelectedMaterial(itemValue);
+                                                if (itemValue !== "") {
+                                                    // Convertir ambos valores a string para asegurar una comparación correcta
+                                                    const selectedOption = options.find((option) =>
+                                                        String(option.TIPIMG_ID) === String(itemValue));
+
+                                                    if (selectedOption) {
+                                                        setMaterialId(selectedOption.TIPIMG_ID);
+                                                        setMaterial(selectedOption.TIPIMG_TIPO);
+                                                    }
+                                                } else {
+                                                    setMaterialId("");
+                                                    setMaterial("");
+                                                }
                                                 setModalVisible(false);
                                             }}
-                                            style={{backgroundColor: "#ffffff"}}
+                                            style={{ backgroundColor: "#ffffff" }}
                                         >
                                             <Picker.Item label="Seleccione una opción..." value="" color="#000"
-                                                         style={{color: "#000"}}/>
-                                            <Picker.Item label="Plástico" value="plastico" color="#000"
-                                                         style={{color: "#000"}}/>
-                                            <Picker.Item label="Papel" value="papel" color="#000"
-                                                         style={{color: "#000"}}/>
-                                            <Picker.Item label="Cartón" value="carton" color="#000"
-                                                         style={{color: "#000"}}/>
-                                            <Picker.Item label="Vidrio" value="vidrio" color="#000"
-                                                         style={{color: "#000"}}/>
-                                            <Picker.Item label="Metal" value="metal" color="#000"
-                                                         style={{color: "#000"}}/>
+                                                style={{ color: "#000" }} />
+                                            {options.map((option) => (
+                                                <Picker.Item
+                                                    key={option.TIPIMG_ID}
+                                                    label={option.TIPIMG_TIPO}
+                                                    value={String(option.TIPIMG_ID)} // Convertir a string para consistencia
+                                                    color="#000"
+                                                />
+                                            ))}
                                         </Picker>
 
                                         <TouchableOpacity
@@ -147,7 +275,7 @@ export default function Account() {
 
 
                     {imageUri && (
-                        <TouchableOpacity style={styles.sendButton}>
+                        <TouchableOpacity style={styles.sendButton} onPress={sendImage}>
                             <Text style={styles.sendButtonText}>Enviar</Text>
                         </TouchableOpacity>
                     )}
@@ -196,7 +324,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         elevation: 5,
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         borderWidth: 1,
@@ -223,7 +351,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         elevation: 3,
         shadowColor: '#1c2b31',
-        shadowOffset: {width: 0, height: 2},
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         marginBottom: 20,

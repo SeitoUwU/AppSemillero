@@ -55,7 +55,7 @@ export default function Register({ navigation }) {
                 Alert.alert('Error', response.data.message);
             }
         } catch (error) {
-            console.log(error);
+            Alert.alert('Error', 'No se pudo conectar con el servidor');
             
         }
     }
