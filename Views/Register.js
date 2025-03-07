@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import NetInfo from '@react-native-community/netinfo';
 import {
     View,
     Text,
@@ -14,29 +15,41 @@ import {
     Platform,
     TouchableWithoutFeedback,
     StatusBar,
-    Alert
+    Alert,
+    ActivityIndicator
 } from 'react-native';
 
 export default function Register({ navigation }) {
     const [user, setUser] = useState({
-        usuario: null,
-        contrasena: null,
-        confirmarContrasena: null,
+        usuario: '',
+        contrasena: '',
+        confirmarContrasena: '',
     });
+    const [loading, setLoading] = useState(false);
 
     const handledEvent = (field, value) => {
         setUser({
             ...user,
             [field]: value,
-              
+
         })
         console.log(user);
     }
 
+    const checkConnection = async () => {
+        setLoading(true);
+        const netInfo = await NetInfo.fetch();
+        if (netInfo.isConnected) {
+            handledConfirmPassword();
+        } else {
+            setLoading(false);
+            Alert.alert('Error', 'No tienes conexión a internet');
+        }
+    };
+
     const handledConfirmPassword = () => {
         if (user.contrasena !== user.confirmarContrasena) {
             Alert.alert('Las contraseñas no coinciden');
-            console.log(user);
         } else {
             register();
         }
@@ -44,19 +57,30 @@ export default function Register({ navigation }) {
 
     const register = async () => {
         try {
-            const response = await axios.post('http://localhost:3000/register', {
-                username: user.usuario,
-                password: user.contrasena,
+            const response = await axios.post('http://158.220.123.106:81/register', {
+                username: user.usuario.trim().toUpperCase(),
+                password: user.contrasena.trim(),
             });
             if (response.status === 201) {
-                Alert.alert(response.data.message);
-                navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                setLoading(false);
+                Alert.alert(
+                    "Éxito", 
+                    response.data.message,
+                    [
+                        {
+                            text: "OK",
+                            onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })
+                        }
+                    ]
+                );
             } else {
+                setLoading(false);
                 Alert.alert('Error', response.data.message);
             }
         } catch (error) {
+            setLoading(false);
             Alert.alert('Error', 'No se pudo conectar con el servidor');
-            
+
         }
     }
 
@@ -110,13 +134,21 @@ export default function Register({ navigation }) {
                             />
 
                             <View style={styles.botonesContainer}>
-                                <TouchableOpacity style={styles.botonRegistro} onPress={handledConfirmPassword}>
-                                    <Text style={styles.textoBotonRegistro}>Registrarse</Text>
+                                <TouchableOpacity style={styles.botonRegistro} onPress={checkConnection}>
+                                    {loading ? (
+                                        <View style={styles.loadingButtonContainer}>
+                                            <ActivityIndicator size="small" color="#ffffff" />
+                                            <Text style={[styles.textoBotonRegistro, { marginLeft: 8 }]}>Registrando...</Text>
+                                        </View>
+                                    ) : (
+                                        <Text style={styles.textoBotonRegistro}>Registrarse</Text>
+                                    )}
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
                                     onPress={() => navigation.navigate('Login')}
-                                    style={styles.botonLogin}
+                                    style={[styles.botonLogin, loading && styles.buttonDisabled]}
+                                    disabled={loading}
                                 >
                                     <Text style={styles.textoBotonLogin}>Iniciar Sesión</Text>
                                 </TouchableOpacity>
@@ -216,5 +248,23 @@ const styles = StyleSheet.create({
     textoBotonLogin: {
         color: 'white',
         fontSize: 18,
+    },
+
+    loadingContainer: {
+        marginVertical: 15,
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        color: '#03BED7',
+        fontSize: 16,
+    },
+    buttonDisabled: {
+        opacity: 0.6,
+    },
+    loadingButtonContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

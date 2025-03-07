@@ -10,7 +10,8 @@ import {
     TouchableWithoutFeedback,
     Modal,
     Platform,
-    Alert
+    Alert,
+    ActivityIndicator
 } from 'react-native';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -19,6 +20,8 @@ import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
+import NetInfo from '@react-native-community/netinfo';
 
 
 export default function Account() {
@@ -30,17 +33,28 @@ export default function Account() {
     const [options, setOptions] = useState([]);
     const [materialId, setMaterialId] = useState(null);
     const [material, setMaterial] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         getOptions();
     }, []);
 
+    const checkConnection = async () => {
+        setLoading(true);
+        const netInfo = await NetInfo.fetch();
+        if (netInfo.isConnected) {
+            sendImage();
+        } else {
+            setLoading(false);
+            Alert.alert('Error', 'No tienes conexión a internet');
+        }
+    };
+
     const getOptions = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/obtenerTiposB');
+            const response = await axios.get('http://158.220.123.106:81/obtenerTiposB');
             if (response.status === 200) {
                 setOptions(response.data);
-                console.log(response.data);
             } else {
                 Alert.alert('Error', response.data.message);
             }
@@ -51,7 +65,6 @@ export default function Account() {
     }
 
     const getToken = async () => {
-        console.log('getToken');
         try {
             const token = await AsyncStorage.getItem('userToken');
             const decode = await jwtDecode(token);
@@ -64,16 +77,21 @@ export default function Account() {
     const sendImage = async () => {
         const userName = await getToken();
         if (verification()) {
-            setImageUri(convertImage(imageUri));
-            console.log("Datos que se van a enviar\n", imageUri, materialId, userName);
-            const response = await axios.post('http://localhost:3000/subirImagen', {
+            const imageConverted = await convertImage(imageUri);
+            const response = await axios.post('http://158.220.123.106:81/subirImagen', {
                 tipImagen: materialId + "",
                 usuarioName: userName,
-                imagen: imageUri,
+                imagen: imageConverted,
             })
-            if (response.status === 200) {
+            if (response.status === 201) {
+                setImageUri(null);
+                setMaterialId(null);
+                setMaterial(null);
+                setSelectedMaterial("");
+                setLoading(false);
                 Alert.alert('Éxito', response.data.message);
             } else {
+                setLoading(false);
                 Alert.alert('Error', response.data.message);
             }
         }
@@ -81,11 +99,9 @@ export default function Account() {
 
     const verification = () => {
         if (!materialId) {
-            console.log("id", materialId);
             Alert.alert('Error', 'Seleccione un tipo de material');
             return false;
         } else if (!imageUri) {
-            console.log(imageUri);
             Alert.alert('Error', 'Falta la imagen');
             return false;
         }
@@ -110,13 +126,13 @@ export default function Account() {
             alert("Se necesitan permisos para acceder a la cámara.");
             return;
         }
-    
+
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
             quality: 0.8,
             aspect: [5, 7], // Proporción aproximada para 500x700
         });
-    
+
         if (!result.canceled) {
             // Redimensiona la imagen a 500x700 píxeles exactamente
             const manipResult = await ImageManipulator.manipulateAsync(
@@ -124,7 +140,7 @@ export default function Account() {
                 [{ resize: { width: 500, height: 700 } }],
                 { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
             );
-            
+
             setImageUri(manipResult.uri);
         }
     };
@@ -180,10 +196,6 @@ export default function Account() {
                                     // Convertir ambos valores a string para asegurar una comparación correcta
                                     const selectedOption = options.find((option) =>
                                         String(option.TIPIMG_ID) === String(itemValue));
-
-                                    // Debug para ver qué está pasando
-                                    console.log("Selected value:", itemValue, "Type:", typeof itemValue);
-                                    console.log("Selected option:", selectedOption);
 
                                     if (selectedOption) {
                                         setMaterialId(selectedOption.TIPIMG_ID);
@@ -275,8 +287,19 @@ export default function Account() {
 
 
                     {imageUri && (
-                        <TouchableOpacity style={styles.sendButton} onPress={sendImage}>
-                            <Text style={styles.sendButtonText}>Enviar</Text>
+                        <TouchableOpacity
+                            style={[styles.sendButton, loading && styles.buttonDisabled]}
+                            onPress={checkConnection}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <View style={styles.loadingButtonContainer}>
+                                    <ActivityIndicator size="small" color="#ffffff" />
+                                    <Text style={[styles.sendButtonText, { marginLeft: 8 }]}>Enviando...</Text>
+                                </View>
+                            ) : (
+                                <Text style={styles.sendButtonText}>Enviar</Text>
+                            )}
                         </TouchableOpacity>
                     )}
 
@@ -446,5 +469,23 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+
+    loadingContainer: {
+        marginVertical: 15,
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        color: '#03BED7',
+        fontSize: 16,
+    },
+    buttonDisabled: {
+        opacity: 0.6,
+    },
+    loadingButtonContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "appS",
-    "slug": "appS",
+    "slug": "appsemillero2",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,22 +19,23 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.giecom.appbasuras"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "329225e3-eefe-4712-ba40-c2a638da077a"
+        "projectId": "085b9514-1cc0-47a9-ace9-6d23f7d35125"
       }
     },
-    "owner": "chviuche",
+    "owner": "seitouwu",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/329225e3-eefe-4712-ba40-c2a638da077a"
+      "url": "https://u.expo.dev/085b9514-1cc0-47a9-ace9-6d23f7d35125"
     }
   }
 }

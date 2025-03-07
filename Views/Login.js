@@ -16,7 +16,8 @@ import {
     Platform,
     TouchableWithoutFeedback,
     StatusBar,
-    Alert
+    Alert,
+    ActivityIndicator
 } from 'react-native';
 
 export default function Login({ navigation }) {
@@ -24,6 +25,7 @@ export default function Login({ navigation }) {
         usuario: '',
         contrasena: '',
     });
+    const [loading, setLoading] = useState(false);
 
     const handledEvent = (field, value) => {
         setUser({
@@ -32,20 +34,22 @@ export default function Login({ navigation }) {
         })
     };
 
-    // const checkConnection = async () => {
-    //     const netInfo = await NetInfo.fetch();
-    //     if (netInfo.isConnected) {
-    //         login();
-    //     } else {
-    //         Alert.alert('Error', 'No tienes conexión a internet');
-    //     }
-    // };
+    const checkConnection = async () => {
+        setLoading(true);
+        const netInfo = await NetInfo.fetch();
+        if (netInfo.isConnected) {
+            login();
+        } else {
+            setLoading(false);
+            Alert.alert('Error', 'No tienes conexión a internet');
+        }
+    };
 
     const login = async () => {
         try {
-            const response = await axios.post('http://localhost:3000/login', {
-                username: user.usuario,
-                password: user.contrasena,
+            const response = await axios.post('http://158.220.123.106:81/login', {
+                username: user.usuario.trim().toUpperCase(),
+                password: user.contrasena.trim(),
             });
             if (response.status === 200) {
                 if (response.data.rol === 'ADMIN') {
@@ -55,11 +59,14 @@ export default function Login({ navigation }) {
                     navigation.reset({ index: 0, routes: [{ name: 'Account' }] });
                 }
             } else if (response.status === 401) {
+                setLoading(false);
                 Alert.alert('Error', response.data.message);
             } else {
+                setLoading(false);
                 Alert.alert('Error', response.data.message);
             }
         } catch (error) {
+            setLoading(false);
             Alert.alert('Error', 'Ocurrió un error al iniciar sesión \n' + error.message);
         }
 
@@ -98,13 +105,25 @@ export default function Login({ navigation }) {
                                 value={user.contrasena}
                             />
 
-                            <TouchableOpacity style={styles.botonInicio} onPress={login}>
-                                <Text style={styles.textoBoton}>Iniciar sesión</Text>
-                            </TouchableOpacity>
+                            {!loading ? (
+                                <TouchableOpacity
+                                    style={[styles.botonInicio, loading && styles.buttonDisabled]}
+                                    onPress={checkConnection}
+                                    disabled={loading}
+                                >
+                                    <Text style={styles.textoBoton}>Iniciar sesión</Text>
+                                </TouchableOpacity>
+                            ) : (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="large" color="#03BED7" />
+                                    <Text style={styles.loadingText}>Iniciando sesión...</Text>
+                                </View>
+                            )}
 
                             <TouchableOpacity
-                                style={styles.botonRegistro}
+                                style={[styles.botonRegistro, loading && styles.buttonDisabled]}
                                 onPress={() => navigation.navigate('Register')}
+                                disabled={loading}
                             >
                                 <Text style={styles.textoBotonRegistro}>Registrarse</Text>
                             </TouchableOpacity>
@@ -180,5 +199,17 @@ const styles = StyleSheet.create({
     textoBotonRegistro: {
         color: '#ffffff',
         fontSize: 18,
+    },
+    loadingContainer: {
+        marginVertical: 15,
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        color: '#03BED7',
+        fontSize: 16,
+    },
+    buttonDisabled: {
+        opacity: 0.6,
     },
 });
