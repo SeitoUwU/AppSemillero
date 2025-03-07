@@ -48,7 +48,7 @@ export default function Login({ navigation }) {
     const login = async () => {
         try {
             const response = await axios.post('http://158.220.123.106:81/login', {
-                username: user.usuario.trim().toUpperCase(),
+                username: user.usuario.trim(),
                 password: user.contrasena.trim(),
             });
             if (response.status === 200) {

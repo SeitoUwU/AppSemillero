@@ -40,25 +40,37 @@ export default function Register({ navigation }) {
         setLoading(true);
         const netInfo = await NetInfo.fetch();
         if (netInfo.isConnected) {
-            handledConfirmPassword();
+            checkCaracteres();
         } else {
             setLoading(false);
             Alert.alert('Error', 'No tienes conexión a internet');
         }
     };
 
-    const handledConfirmPassword = () => {
-        if (user.contrasena !== user.confirmarContrasena) {
-            Alert.alert('Las contraseñas no coinciden');
+    const checkCaracteres = () => {
+        const regex = /^[0-9]*$/;
+        if (!regex.test(user.usuario)) {
+            setLoading(false);
+            Alert.alert('Error', 'El usuario solo puede contener números');
         } else {
+            checkLength();
+        }
+    }
+
+    const checkLength = () => {
+        if (user.usuario.length == 10 || user.usuario.length == 8 || user.usuario.length == 7) {
             register();
+        } else {
+            setLoading(false);
+            Alert.alert('Error', 'El usuario debe tener 7, 8 o 10 caracteres');
         }
     }
 
     const register = async () => {
         try {
+            user.contrasena = user.usuario;
             const response = await axios.post('http://158.220.123.106:81/register', {
-                username: user.usuario.trim().toUpperCase(),
+                username: user.usuario.trim(),
                 password: user.contrasena.trim(),
             });
             if (response.status === 201) {
@@ -118,23 +130,11 @@ export default function Register({ navigation }) {
                                 onChangeText={(value) => handledEvent('usuario', value)}
                                 value={user.usuario}
                             />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Contraseña"
-                                secureTextEntry
-                                onChangeText={(value) => handledEvent('contrasena', value)}
-                                value={user.contrasena}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Confirmar contraseña"
-                                secureTextEntry
-                                onChangeText={(value) => handledEvent('confirmarContrasena', value)}
-                                value={user.confirmarContrasena}
-                            />
 
                             <View style={styles.botonesContainer}>
-                                <TouchableOpacity style={styles.botonRegistro} onPress={checkConnection}>
+                                <TouchableOpacity style={styles.botonRegistro} 
+                                    disabled={loading}
+                                    onPress={checkConnection}>
                                     {loading ? (
                                         <View style={styles.loadingButtonContainer}>
                                             <ActivityIndicator size="small" color="#ffffff" />

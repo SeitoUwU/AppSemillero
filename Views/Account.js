@@ -34,6 +34,7 @@ export default function Account() {
     const [materialId, setMaterialId] = useState(null);
     const [material, setMaterial] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [userName, setUserName] = useState("");
 
     useEffect(() => {
         getOptions();
@@ -155,7 +156,7 @@ export default function Account() {
             <View style={styles.container}>
                 <View style={styles.header}>
                     <Text style={styles.titulo}>
-                        Hola, <Text style={styles.usuario}>Usuario</Text>
+                        Hola, <Text style={styles.usuario}>Bienvenido</Text>
                     </Text>
 
                     <TouchableOpacity onPress={() => setShowLogout(!showLogout)}>
