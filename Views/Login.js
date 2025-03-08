@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 
 export default function Login({ navigation }) {
+    console.log("✅ Renderizando Login...");
     const [user, setUser] = useState({
         usuario: '',
         contrasena: '',
@@ -53,10 +54,10 @@ export default function Login({ navigation }) {
             });
             if (response.status === 200) {
                 if (response.data.rol === 'ADMIN') {
-                    navigation.reset({ index: 0, routes: [{ name: 'Auditoria' }] });
+                    navigation.navigate('Auditoria');
                 } else {
                     await AsyncStorage.setItem('userToken', response.data.token);
-                    navigation.reset({ index: 0, routes: [{ name: 'Account' }] });
+                    navigation.navigate('Account')
                 }
             } else if (response.status === 401) {
                 setLoading(false);
@@ -67,7 +68,7 @@ export default function Login({ navigation }) {
             }
         } catch (error) {
             setLoading(false);
-            Alert.alert('Error', 'Ocurrió un error al iniciar sesión \n' + error.message);
+            Alert.alert('Error', 'No se pudo iniciar sesión. Inténtalo de nuevo.');
         }
 
     };
@@ -86,7 +87,7 @@ export default function Login({ navigation }) {
                         keyboardShouldPersistTaps="handled"
                     >
                         <View style={styles.container}>
-                            <Image source={require('../assets/login.png')} style={styles.imagen} />
+                            {/*<Image source={require('../assets/login.png')} style={styles.imagen} />*/}
 
                             <Text style={styles.titulo}>Iniciar sesión</Text>
 

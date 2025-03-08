@@ -32,7 +32,7 @@ export default function Auditoria({ navigation }) {
                         style={styles.card}
                         onPress={() => navigation.navigate('DetailAuditoria', { categoria: item.name })}
                     >
-                        <Image source={item.image} style={styles.image} />
+                        {/*<Image source={item.image} style={styles.image} />*/}
                         <Text style={styles.text}>{item.name}</Text>
                     </TouchableOpacity>
                 ))}

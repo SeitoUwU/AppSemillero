@@ -32,7 +32,7 @@ export default function Verificacion({ route, navigation }) {
 
             <Text style={styles.subTitle}>Usuario: {usuario}</Text>
 
-            <Image source={image} style={styles.image} />
+            {/*<Imasge source={image} style={styles.image} />*/}
 
             <TouchableOpacity style={styles.successButton} onPress={handleVerification}>
                 <Text style={styles.buttonText1}>Verificación Exitosa</Text>

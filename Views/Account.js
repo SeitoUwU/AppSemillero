@@ -25,6 +25,7 @@ import NetInfo from '@react-native-community/netinfo';
 
 
 export default function Account() {
+    console.log("✅ Renderizando Cuenta...");
     const navigation = useNavigation();
     const [imageUri, setImageUri] = useState(null);
     const [showLogout, setShowLogout] = useState(false);
@@ -68,22 +69,34 @@ export default function Account() {
     const getToken = async () => {
         try {
             const token = await AsyncStorage.getItem('userToken');
-            const decode = await jwtDecode(token);
+            if (!token) {
+                throw new Error("Token no encontrado");
+            }
+            const decode = jwtDecode(token);
             return decode.username;
         } catch (error) {
-            console.log(error);
+            console.log("Error obteniendo token:", error);
+            return null;
         }
     }
 
     const sendImage = async () => {
-        const userName = await getToken();
-        if (verification()) {
+        try {
+            console.log("Enviando imagen...");
+            console.log("Material ID:", materialId);
+            console.log("Usuario:", await getToken());
+
             const imageConverted = await convertImage(imageUri);
+            console.log("Imagen Convertida:", imageConverted ? "Sí" : "No");
+
             const response = await axios.post('http://158.220.123.106:81/subirImagen', {
                 tipImagen: materialId + "",
-                usuarioName: userName,
+                usuarioName: await getToken(),
                 imagen: imageConverted,
-            })
+            });
+
+            console.log("Respuesta del servidor:", response.data);
+
             if (response.status === 201) {
                 setImageUri(null);
                 setMaterialId(null);
@@ -95,8 +108,13 @@ export default function Account() {
                 setLoading(false);
                 Alert.alert('Error', response.data.message);
             }
+        } catch (error) {
+            setLoading(false);
+            console.log("Error al enviar imagen:", error);
+            Alert.alert('Error', 'No se pudo conectar con el servidor');
         }
     };
+
 
     const verification = () => {
         if (!materialId) {
@@ -148,7 +166,7 @@ export default function Account() {
 
     const handleLogout = () => {
         setShowLogout(false);
-        navigation.replace("Login");
+        navigation.navigate("Login");
     };
 
     return (
@@ -160,7 +178,7 @@ export default function Account() {
                     </Text>
 
                     <TouchableOpacity onPress={() => setShowLogout(!showLogout)}>
-                        <Image source={require('../assets/profile.png')} style={styles.profileImage} />
+                        {/* <Image source={require('../assets/profile.png')} style={styles.profileImage} />*/}
                     </TouchableOpacity>
 
                     {showLogout && (
@@ -177,7 +195,7 @@ export default function Account() {
                             <Image source={{ uri: imageUri }} style={styles.imagePreview} />
                         ) : (
                             <TouchableOpacity style={styles.cameraButton} onPress={openCamera}>
-                                <Image source={require('../assets/camara.png')} style={styles.cameraIcon} />
+                                {/*<Image source={require('../assets/camara.png')} style={styles.cameraIcon} />*/}
                             </TouchableOpacity>
                         )}
 
@@ -192,23 +210,20 @@ export default function Account() {
                         <Picker
                             selectedValue={selectedMaterial}
                             onValueChange={(itemValue, itemIndex) => {
-                                setSelectedMaterial(itemValue);
-                                if (itemValue !== "") {
-                                    // Convertir ambos valores a string para asegurar una comparación correcta
-                                    const selectedOption = options.find((option) =>
-                                        String(option.TIPIMG_ID) === String(itemValue));
+                                console.log("Opciones disponibles:", options); // Verificar opciones en la consola
 
-                                    if (selectedOption) {
-                                        setMaterialId(selectedOption.TIPIMG_ID);
-                                        setMaterial(selectedOption.TIPIMG_TIPO);
-                                    } else {
-                                        // Enfoque alternativo si el find no funciona
-                                        // Para el primer elemento después de "Seleccione una opción"
-                                        if (itemIndex > 0 && options.length >= itemIndex) {
-                                            setMaterialId(options[itemIndex - 1].TIPIMG_ID);
-                                            setMaterial(options[itemIndex - 1].TIPIMG_TIPO);
-                                        }
-                                    }
+                                if (!options || options.length === 0) {
+                                    console.log("No hay opciones disponibles");
+                                    return;
+                                }
+
+                                const selectedOption = options.find((option) =>
+                                    String(option.TIPIMG_ID) === String(itemValue)
+                                );
+
+                                if (selectedOption) {
+                                    setMaterialId(selectedOption.TIPIMG_ID);
+                                    setMaterial(selectedOption.TIPIMG_TIPO);
                                 } else {
                                     setMaterialId("");
                                     setMaterial("");

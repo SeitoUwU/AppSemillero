@@ -25,17 +25,17 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "085b9514-1cc0-47a9-ace9-6d23f7d35125"
-      }
-    },
-    "owner": "seitouwu",
     "runtimeVersion": {
       "policy": "appVersion"
     },
+    "assetBundlePatterns": ["**/*"],
     "updates": {
-      "url": "https://u.expo.dev/085b9514-1cc0-47a9-ace9-6d23f7d35125"
+      "enabled": false
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4357da3f-a366-4927-aa2c-60e4952bf80f"
+      }
     }
   }
 }

@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 
 export default function Register({ navigation }) {
+    console.log("✅ Renderizando Registro...");
     const [user, setUser] = useState({
         usuario: '',
         contrasena: '',
@@ -28,13 +29,12 @@ export default function Register({ navigation }) {
     const [loading, setLoading] = useState(false);
 
     const handledEvent = (field, value) => {
-        setUser({
-            ...user,
+        setUser(prevUser => ({
+            ...prevUser,
             [field]: value,
-
-        })
-        console.log(user);
-    }
+        }));
+        console.log("Nuevo estado:", user);
+    };
 
     const checkConnection = async () => {
         setLoading(true);
@@ -76,12 +76,12 @@ export default function Register({ navigation }) {
             if (response.status === 201) {
                 setLoading(false);
                 Alert.alert(
-                    "Éxito", 
+                    "Éxito",
                     response.data.message,
                     [
                         {
                             text: "OK",
-                            onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })
+                            onPress: () => navigation.navigate('Login')
                         }
                     ]
                 );
@@ -91,8 +91,8 @@ export default function Register({ navigation }) {
             }
         } catch (error) {
             setLoading(false);
+            console.log("Error en registro:", error);
             Alert.alert('Error', 'No se pudo conectar con el servidor');
-
         }
     }
 
@@ -118,7 +118,7 @@ export default function Register({ navigation }) {
                                 de materiales
                             </Text>
 
-                            <Image source={require('../assets/home.png')} style={styles.imagen} />
+                            {/*<Image source={require('../assets/home.png')} style={styles.imagen} />*/}
 
                             <View style={styles.tituloFormularioContainer}>
                                 <Text style={styles.tituloFormulario}>Crea tu cuenta</Text>

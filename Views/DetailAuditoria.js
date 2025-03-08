@@ -32,7 +32,7 @@ export default function DetalleAuditoria({ navigation }) {
                     <TouchableOpacity
                         key={item.id}
                         style={styles.tableRow}
-                        onPress={() => navigation.navigate('Verificacion', { usuario: item.usuario, image: item.image })}
+                        onPress={() => navigation.navigate('Verificacion', { usuario: item.usuario })}
                     >
                         <View style={styles.columnUsuario}><Text style={styles.rowText}>{item.usuario}</Text></View>
                         <View style={styles.columnFoto}>
