@@ -4,11 +4,11 @@
     "slug": "appsemillero2",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/carton.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/carton.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/carton.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.giecom.appbasuras"
