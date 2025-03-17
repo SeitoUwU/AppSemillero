@@ -35,10 +35,20 @@ export default function Login({ navigation }) {
         })
     };
 
+    const checkInternetAccess = async () => {
+        try {
+            const response = await fetch('http://158.220.123.106/ApiReciclaje/api/obtenerInfoImages');
+            console.log('✅ Prueba de acceso a Internet:', response.status);
+        } catch (error) {
+            console.log('❌ Error de acceso a Internet:', error.message);
+        }
+    };
+
     const checkConnection = async () => {
         setLoading(true);
         const netInfo = await NetInfo.fetch();
         if (netInfo.isConnected) {
+            await checkInternetAccess();
             login();
         } else {
             setLoading(false);
@@ -48,30 +58,38 @@ export default function Login({ navigation }) {
 
     const login = async () => {
         try {
-            const response = await axios.post('http://158.220.123.106:81/login', {
-                username: user.usuario.trim(),
-                password: user.contrasena.trim(),
+            setLoading(true);
+        
+            const response = await fetch('http://158.220.123.106/ApiReciclaje/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: user.usuario.trim(),
+                    password: user.contrasena.trim(),
+                    rolUsuario: "user",
+                }),
             });
-            if (response.status === 200) {
-                if (response.data.rol === 'ADMIN') {
-                    navigation.navigate('Auditoria');
-                } else {
-                    await AsyncStorage.setItem('userToken', response.data.token);
-                    navigation.navigate('Account')
-                }
-            } else if (response.status === 401) {
-                setLoading(false);
-                Alert.alert('Error', response.data.message);
+    
+            console.log("✅ Respuesta cruda de la API:", response);
+    
+            if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+    
+            const data = await response.json();
+            console.log("✅ Respuesta JSON:", data);
+    
+            if (data.rolUser === 'ADMIN') {
+                navigation.navigate('Auditoria');
             } else {
-                setLoading(false);
-                Alert.alert('Error', response.data.message);
+                navigation.navigate('Account');
             }
         } catch (error) {
             setLoading(false);
-            Alert.alert('Error', 'No se pudo iniciar sesión. Inténtalo de nuevo.');
+            console.log("❌ Error en login:", error.message);
+            Alert.alert('Error', `Error en login: ${error.message}`);
         }
-
     };
+    
+    
 
     return (
         <SafeAreaView style={styles.safeArea}>

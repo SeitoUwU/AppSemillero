@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/carton.png",
         "backgroundColor": "#ffffff"
@@ -28,7 +29,9 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "updates": {
       "enabled": false
     },

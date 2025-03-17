@@ -68,16 +68,23 @@ export default function Register({ navigation }) {
 
     const register = async () => {
         try {
-            user.contrasena = user.usuario;
-            const response = await axios.post('http://158.220.123.106:81/register', {
-                username: user.usuario.trim(),
-                password: user.contrasena.trim(),
+            setLoading(true);
+    
+            const usuario = user.usuario.trim();
+            const contrasena = usuario;
+            const rolUsuario = "user";  
+    
+            const response = await axios.post('http://158.220.123.106/ApiReciclaje/api/register', {
+                username: usuario,
+                password: contrasena,
+                rolUsuario: rolUsuario,
             });
-            if (response.status === 201) {
+    
+            if (response.status === 200) {
                 setLoading(false);
                 Alert.alert(
                     "Éxito",
-                    response.data.message,
+                    "Registro exitoso",
                     [
                         {
                             text: "OK",
@@ -87,14 +94,14 @@ export default function Register({ navigation }) {
                 );
             } else {
                 setLoading(false);
-                Alert.alert('Error', response.data.message);
+                Alert.alert('Error', response.data.message || "Error en el registro");
             }
         } catch (error) {
             setLoading(false);
             console.log("Error en registro:", error);
             Alert.alert('Error', 'No se pudo conectar con el servidor');
         }
-    }
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
